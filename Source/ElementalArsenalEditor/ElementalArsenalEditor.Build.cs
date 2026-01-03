@@ -44,6 +44,7 @@ public class ElementalArsenalEditor : ModuleRules
 				"ToolMenus",
 				"ContentBrowser",
 				"PropertyEditor",
+				"GameplayTagsEditor",
 				"GameplayAbilities",
 				"GameplayTags",
 				"GameplayTasks",

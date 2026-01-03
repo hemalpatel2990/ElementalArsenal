@@ -14,6 +14,10 @@ A modular Gameplay Ability System (GAS) plugin for Unreal Engine 5.
 - **`UEAAttributeSet`**: Custom Attribute Set handling Health and Damage.
 - **Dynamic Logic**: Intercepts incoming damage in `PostGameplayEffectExecute`, iterates through configured rules, and applies reaction effects dynamically.
 
+### 3. Editor Tools
+- **Ability Wizard**: A dedicated editor window to automate the creation of Gameplay Abilities and their associated Gameplay Effects (Cost, Cooldown, Damage).
+- **Auto-Wiring**: Automatically links created Gameplay Effects to the Ability Class Defaults (CDO) and applies selected tags.
+
 ## System Architecture
 
 ### Logic Flow
@@ -107,6 +111,22 @@ sequenceDiagram
 5. **Gameplay**:
    - Call `EquipmentComponent->EquipItem(MyDataAsset)`.
    - When you deal damage using the granted ability, the `Element.Fire` tag is passed to the reaction system.
+
+## Tools Guide
+
+### Elemental Ability Wizard
+Access via: **Window** -> **Elemental Arsenal** -> **Ability Wizard**.
+
+This tool helps you batch-create assets for a new Ability.
+1.  **Name**: Enter the base name (e.g., `FireBall`).
+2.  **Parent Ability**: Select your base Gameplay Ability class.
+3.  **Ability Tags**: Add tags (e.g., `Ability.Element.Fire`) that this ability should have.
+4.  **Components**:
+    *   **Cost GE**: Creates `GE_FireBall_Cost`.
+    *   **Cooldown GE**: Creates `GE_FireBall_Cooldown`.
+    *   **Damage GE**: Creates `GE_FireBall_Damage`.
+    *   *Note*: You can select specific parent classes for each GE.
+5.  **Generate**: Clicking generate creates all assets in the selected folder and **automatically links** them (sets the Cost/Cooldown classes in the Ability CDO).
 
 ## Troubleshooting
 
