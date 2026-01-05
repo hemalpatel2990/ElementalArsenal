@@ -13,8 +13,11 @@
 #include "Factories/BlueprintFactory.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayEffect.h"
+#include "Kismet2/KismetEditorUtilities.h"
 #include "PropertyCustomizationHelpers.h"
 #include "GameplayTagsEditorModule.h"
+#include "Framework/Notifications/NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
 
 #define LOCTEXT_NAMESPACE "SElementalAbilityWizard"
 
@@ -95,6 +98,9 @@ void SElementalAbilityWizard::Construct(const FArguments& InArgs)
 				[
 					SNew(SClassPropertyEntryBox)
 					.MetaClass(UGameplayAbility::StaticClass())
+					.AllowAbstract(true)
+					.IsBlueprintBaseOnly(false)
+					.AllowNone(true)
 					.SelectedClass(this, &SElementalAbilityWizard::GetParentClass)
 					.OnSetClass(this, &SElementalAbilityWizard::OnParentClassChanged)
 				]
@@ -165,6 +171,8 @@ void SElementalAbilityWizard::Construct(const FArguments& InArgs)
 					[
 						SNew(SClassPropertyEntryBox)
 						.MetaClass(UGameplayEffect::StaticClass())
+						.AllowAbstract(true)
+						.IsBlueprintBaseOnly(false)
 						.SelectedClass(this, &SElementalAbilityWizard::GetCooldownClass)
 						.OnSetClass(this, &SElementalAbilityWizard::OnCooldownClassChanged)
 					]
@@ -196,6 +204,8 @@ void SElementalAbilityWizard::Construct(const FArguments& InArgs)
 					[
 						SNew(SClassPropertyEntryBox)
 						.MetaClass(UGameplayEffect::StaticClass())
+						.AllowAbstract(true)
+						.IsBlueprintBaseOnly(false)
 						.SelectedClass(this, &SElementalAbilityWizard::GetCostClass)
 						.OnSetClass(this, &SElementalAbilityWizard::OnCostClassChanged)
 					]
@@ -227,6 +237,8 @@ void SElementalAbilityWizard::Construct(const FArguments& InArgs)
 					[
 						SNew(SClassPropertyEntryBox)
 						.MetaClass(UGameplayEffect::StaticClass())
+						.AllowAbstract(true)
+						.IsBlueprintBaseOnly(false)
 						.SelectedClass(this, &SElementalAbilityWizard::GetDamageClass)
 						.OnSetClass(this, &SElementalAbilityWizard::OnDamageClassChanged)
 					]
@@ -274,10 +286,13 @@ bool SElementalAbilityWizard::IsCreateEnabled() const
 FReply SElementalAbilityWizard::OnCreateClicked()
 {
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	
 	// Factories
 	UBlueprintFactory* BPFactory = NewObject<UBlueprintFactory>();
 	BPFactory->BlueprintType = BPTYPE_Normal;
+
+	TArray<UObject*> CreatedAssets;
 
 	// 1. Create Gameplay Effects
 	UBlueprint* CooldownBP = nullptr;
@@ -285,6 +300,7 @@ FReply SElementalAbilityWizard::OnCreateClicked()
 	{
 		BPFactory->ParentClass = CooldownClass ? CooldownClass : UGameplayEffect::StaticClass();
 		CooldownBP = Cast<UBlueprint>(CreateAsset("GE_" + AbilityName + "_Cooldown", TargetPath, UBlueprint::StaticClass(), BPFactory));
+		if (CooldownBP) CreatedAssets.Add(CooldownBP);
 	}
 
 	UBlueprint* CostBP = nullptr;
@@ -292,6 +308,7 @@ FReply SElementalAbilityWizard::OnCreateClicked()
 	{
 		BPFactory->ParentClass = CostClass ? CostClass : UGameplayEffect::StaticClass();
 		CostBP = Cast<UBlueprint>(CreateAsset("GE_" + AbilityName + "_Cost", TargetPath, UBlueprint::StaticClass(), BPFactory));
+		if (CostBP) CreatedAssets.Add(CostBP);
 	}
 	
 	UBlueprint* DamageBP = nullptr;
@@ -299,6 +316,7 @@ FReply SElementalAbilityWizard::OnCreateClicked()
 	{
 		BPFactory->ParentClass = DamageClass ? DamageClass : UGameplayEffect::StaticClass();
 		DamageBP = Cast<UBlueprint>(CreateAsset("GE_" + AbilityName + "_Damage", TargetPath, UBlueprint::StaticClass(), BPFactory));
+		if (DamageBP) CreatedAssets.Add(DamageBP);
 	}
 
 	// 2. Create Ability
@@ -308,6 +326,21 @@ FReply SElementalAbilityWizard::OnCreateClicked()
 	if (UBlueprint* AbilityBP = Cast<UBlueprint>(CreateAsset("GA_" + AbilityName, TargetPath, UBlueprint::StaticClass(), BPFactory)))
 	{
 		ConfigureAbility(AbilityBP, CostBP, CooldownBP, DamageBP);
+		CreatedAssets.Add(AbilityBP);
+	}
+
+	// 4. UX Feedback
+	if (CreatedAssets.Num() > 0)
+	{
+		// Sync Content Browser to new assets
+		ContentBrowserModule.Get().SyncBrowserToAssets(CreatedAssets);
+
+		// Show Notification
+		FNotificationInfo Info(LOCTEXT("CreationSuccess", "Ability Assets Generated Successfully"));
+		Info.ExpireDuration = 3.0f;
+		Info.CheckBoxState = ECheckBoxState::Checked;
+		Info.Image = FAppStyle::GetBrush("Icons.SuccessWithBorder");
+		FSlateNotificationManager::Get().AddNotification(Info);
 	}
 
 	return FReply::Handled();

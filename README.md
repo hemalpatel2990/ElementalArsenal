@@ -118,15 +118,22 @@ sequenceDiagram
 Access via: **Window** -> **Elemental Arsenal** -> **Ability Wizard**.
 
 This tool helps you batch-create assets for a new Ability.
+
+**Features:**
+*   **Batch Creation**: Generates the Ability BP and optional Cost, Cooldown, and Damage Gameplay Effects in one go.
+*   **Auto-Wiring**: Automatically links the created GEs to the Ability's Class Defaults and applies selected Gameplay Tags.
+*   **Native Support**: Fully supports selecting **Abstract** or **Native C++** parent classes (e.g., inheriting directly from `UGameplayAbility`).
+
+**Workflow:**
 1.  **Name**: Enter the base name (e.g., `FireBall`).
-2.  **Parent Ability**: Select your base Gameplay Ability class.
+2.  **Parent Ability**: Select your base Gameplay Ability class (Native or Blueprint).
 3.  **Ability Tags**: Add tags (e.g., `Ability.Element.Fire`) that this ability should have.
 4.  **Components**:
     *   **Cost GE**: Creates `GE_FireBall_Cost`.
     *   **Cooldown GE**: Creates `GE_FireBall_Cooldown`.
     *   **Damage GE**: Creates `GE_FireBall_Damage`.
     *   *Note*: You can select specific parent classes for each GE.
-5.  **Generate**: Clicking generate creates all assets in the selected folder and **automatically links** them (sets the Cost/Cooldown classes in the Ability CDO).
+5.  **Generate**: Clicking generate creates all assets in the selected folder. A notification will confirm success and highlight the new files in the Content Browser.
 
 ## Troubleshooting
 
